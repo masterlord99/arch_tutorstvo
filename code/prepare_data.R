@@ -7,12 +7,12 @@ data <- readRDS("~/Desktop/backtest/00_BIG_RULE/data/spx_min.RDS")
 
 
 # ensure datetime is POSIXct (adjust tz if you need a specific timezone)
-data <- data %>%
-  mutate(datetime = as.POSIXct(datetime, tz = "UTC"))
+# data <- data %>%
+#   mutate(datetime = as.POSIXct(datetime, tz = "UTC"))
 
 # floor to 15-min period and aggregate
 oh15 <- data %>%
-  mutate(period = floor_date(datetime, "15 minutes")) %>%
+  mutate(period = floor_date(datetime, "5 minutes")) %>%
   group_by(period) %>%
   summarise(
     open  = open[which.min(datetime)],   # open at earliest minute in the period
@@ -42,6 +42,13 @@ data$SMA_50 = data$close/SMA(data$close,50)
 data$EMA_8 = data$close/EMA(data$close,8)
 
 data = na.omit(data)
+
+data$wday = wday(label = T,x = data$period)
+data$hour = hour(data$period)
+data$minute = minute(data$period)
+
+data$EC = 0
+data$EC[data$wday=="Fri" & data$hour==15 & data$minute>=50] = 1
 
 saveRDS(data,"data/prepared_ta.RDS")
 
